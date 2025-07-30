@@ -1,0 +1,272 @@
+/* AT URL link styling */
+.atpi-url-wrapper {
+  position: relative;
+  display: inline;
+}
+
+.atpi-url-link {
+  color: #0066cc;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.atpi-url-link:hover {
+  color: #0052a3;
+  text-decoration: underline;
+}
+
+/* Hover overlay styling */
+.atpi-overlay {
+  position: absolute;
+  z-index: 999999;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  max-width: 700px;
+  max-height: 600px;
+  overflow: auto;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1a1a1a;
+  pointer-events: auto;
+  user-select: text;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay {
+    background: #1e1e1e;
+    border-color: #444;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    color: #e0e0e0;
+  }
+}
+
+.atpi-overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #eee;
+  cursor: grab;
+  user-select: none;
+}
+
+.atpi-overlay-header:active {
+  cursor: grabbing;
+}
+
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay-header {
+    border-bottom-color: #444;
+  }
+}
+
+.atpi-overlay-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.atpi-overlay-copy,
+.atpi-overlay-pin,
+.atpi-overlay-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s, background 0.2s;
+  color: #333;
+}
+
+.atpi-overlay-copy:hover,
+.atpi-overlay-pin:hover,
+.atpi-overlay-close:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay-copy,
+  .atpi-overlay-pin,
+  .atpi-overlay-close {
+    color: #e0e0e0;
+  }
+  
+  .atpi-overlay-copy:hover,
+  .atpi-overlay-pin:hover,
+  .atpi-overlay-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.atpi-overlay-pin.pinned {
+  opacity: 1;
+}
+
+.atpi-overlay-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 50%, #666 50%);
+  border-radius: 0 0 8px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay-resize-handle {
+    background: linear-gradient(135deg, transparent 50%, #999 50%);
+  }
+}
+
+.atpi-overlay-title {
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay-title {
+    color: #e0e0e0;
+  }
+}
+
+.atpi-overlay-mode {
+  font-size: 12px;
+  color: #666;
+  background: #f0f0f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay-mode {
+    color: #ccc;
+    background: #333;
+  }
+}
+
+
+.atpi-overlay-content {
+  font-family: 'SF Mono', Monaco, Consolas, monospace;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #f8f8f8;
+  padding: 16px;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+  color: #1a1a1a;
+  line-height: 1.6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay-content {
+    background: #2a2a2a;
+    color: #e0e0e0;
+  }
+}
+
+.atpi-overlay-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.atpi-overlay-action {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #0066cc;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.atpi-overlay-action:hover {
+  background: #0052a3;
+  color: white;
+  text-decoration: none;
+}
+
+.atpi-overlay-action.secondary {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.atpi-overlay-action.secondary:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay-action.secondary {
+    background: #333;
+    color: #e0e0e0;
+  }
+  
+  .atpi-overlay-action.secondary:hover {
+    background: #444;
+    color: #e0e0e0;
+  }
+}
+
+.atpi-overlay-loading {
+  text-align: center;
+  color: #666;
+  padding: 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay-loading {
+    color: #aaa;
+  }
+}
+
+.atpi-overlay-error {
+  color: #d32f2f;
+  background: #ffebee;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .atpi-overlay-error {
+    color: #ff6b6b;
+    background: #3a1f1f;
+  }
+}
+
+/* Loading spinner */
+.atpi-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #0066cc;
+  border-radius: 50%;
+  animation: atpi-spin 1s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes atpi-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

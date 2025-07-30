@@ -1,0 +1,44 @@
+{
+  "manifest_version": 3,
+  "name": "ATPI - AT Protocol URL Resolver",
+  "version": "1.0.0",
+  "description": "Resolve AT Protocol URLs to JSON data with hover preview",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://*.bsky.social/*",
+    "https://*.bsky.network/*",
+    "https://*.host.bsky.network/*",
+    "https://plc.directory/*",
+    "https://atpi.at/*",
+    "https://dns.google/*",
+    "https://cloudflare-dns.com/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/content.js", "content/overlay.js"],
+      "css": ["content/overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "48": "assets/icon-48.png",
+      "128": "assets/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icon-16.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  }
+}
