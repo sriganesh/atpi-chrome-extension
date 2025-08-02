@@ -10,6 +10,13 @@ function processTextNode(textNode) {
   if (matches.length === 0) return;
   
   const parent = textNode.parentNode;
+  // Check if parent exists and textNode is still in DOM
+  if (!parent || !parent.contains(textNode)) return;
+  
+  // Skip if already wrapped or inside our own link
+  if (parent.classList && parent.classList.contains('atpi-url-wrapper')) return;
+  if (parent.classList && parent.classList.contains('atpi-url-link')) return;
+  
   const fragment = document.createDocumentFragment();
   let lastIndex = 0;
   
@@ -58,7 +65,37 @@ function processTextNode(textNode) {
   }
   
   // Replace the text node with the fragment
-  parent.replaceChild(fragment, textNode);
+  // Double-check parent and textNode still exist
+  if (parent && parent.contains(textNode)) {
+    try {
+      parent.replaceChild(fragment, textNode);
+    } catch (error) {
+      console.warn('Failed to replace text node:', error);
+    }
+  }
+}
+
+// Check if element should be skipped
+function shouldSkipElement(element) {
+  // Skip certain tags
+  const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'INPUT', 'TEXTAREA', 'SELECT'];
+  if (skipTags.includes(element.tagName)) return true;
+  
+  // Skip contenteditable elements
+  if (element.contentEditable === 'true' || element.isContentEditable) return true;
+  
+  // Skip elements with textbox role (common in chat interfaces)
+  if (element.getAttribute('role') === 'textbox') return true;
+  
+  // Skip known chat compose areas
+  const skipClasses = ['composer', 'message-input', 'chat-input', 'ProseMirror', 'DraftEditor'];
+  // Convert className to string (handles SVGAnimatedString and other types)
+  const elementClasses = (element.className && typeof element.className === 'string') 
+    ? element.className 
+    : (element.className?.baseVal || element.getAttribute('class') || '');
+  if (typeof elementClasses === 'string' && skipClasses.some(cls => elementClasses.includes(cls))) return true;
+  
+  return false;
 }
 
 // Walk through all text nodes in an element
@@ -67,8 +104,7 @@ function walkTextNodes(element) {
     processTextNode(element);
   } else if (element.nodeType === Node.ELEMENT_NODE) {
     // Skip certain elements
-    const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'IFRAME', 'OBJECT', 'EMBED', 'A'];
-    if (skipTags.includes(element.tagName)) return;
+    if (shouldSkipElement(element)) return;
     
     // Process child nodes (copy to array to avoid mutation issues)
     const childNodes = [...element.childNodes];
@@ -81,21 +117,55 @@ function processPage() {
   walkTextNodes(document.body);
 }
 
-// Observe DOM changes for new content
-const observer = new MutationObserver((mutations) => {
+// Debounce function for performance
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// Batch process mutations
+let pendingMutations = [];
+const processPendingMutations = debounce(() => {
+  const mutations = [...pendingMutations];
+  pendingMutations = [];
+  
   mutations.forEach(mutation => {
     // Process added nodes
     mutation.addedNodes.forEach(node => {
       if (node.nodeType === Node.ELEMENT_NODE || node.nodeType === Node.TEXT_NODE) {
-        walkTextNodes(node);
+        // Skip if node is inside an editable element
+        const editableParent = node.nodeType === Node.ELEMENT_NODE ? 
+          node.closest('[contenteditable="true"], input, textarea, [role="textbox"]') :
+          node.parentElement?.closest('[contenteditable="true"], input, textarea, [role="textbox"]');
+        
+        if (!editableParent) {
+          walkTextNodes(node);
+        }
       }
     });
     
     // Also check if text content was changed
     if (mutation.type === 'characterData' && mutation.target.nodeType === Node.TEXT_NODE) {
-      processTextNode(mutation.target);
+      // Skip if inside editable element
+      const editableParent = mutation.target.parentElement?.closest('[contenteditable="true"], input, textarea, [role="textbox"]');
+      if (!editableParent) {
+        processTextNode(mutation.target);
+      }
     }
   });
+}, 100); // Process mutations every 100ms
+
+// Observe DOM changes for new content
+const observer = new MutationObserver((mutations) => {
+  pendingMutations.push(...mutations);
+  processPendingMutations();
 });
 
 // Start observing when DOM is ready
