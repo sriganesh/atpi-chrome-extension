@@ -1,3 +1,17 @@
+// Debug logging with timestamps
+let DEBUG_OVERLAY = false; // Will be loaded from storage
+const logOverlay = (...args) => {
+  if (DEBUG_OVERLAY) {
+    const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
+    console.log(`[${timestamp}] [ATPI Overlay]`, ...args);
+  }
+};
+
+// Load debug mode setting
+chrome.storage.sync.get(['debugMode'], (result) => {
+  DEBUG_OVERLAY = result.debugMode || false;
+});
+
 // Overlay management
 let currentOverlay = null;
 let hoverTimeout = null;
@@ -6,18 +20,28 @@ let isPinned = false;
 let isDragging = false;
 let dragOffset = { x: 0, y: 0 };
 
-// Cache for resolved URLs (5 minute TTL)
-const urlCache = new Map();
+// Cache for resolved URLs (5 minute TTL) - separate for each mode
+const urlCache = {
+  local: new Map(),
+  remote: new Map()
+};
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 // Load current mode on startup
 chrome.storage.sync.get(['mode'], (result) => {
-  currentMode = result.mode || 'local';
+  currentMode = result.mode || 'remote';
+  logOverlay('Initial mode:', currentMode);
 });
 
 // Listen for mode changes
 window.addEventListener('atpi-mode-changed', (event) => {
   currentMode = event.detail.mode;
+  logOverlay('Mode changed to:', currentMode);
+});
+
+// Listen for debug mode changes
+window.addEventListener('atpi-debug-mode-changed', (event) => {
+  DEBUG_OVERLAY = event.detail.debugMode;
 });
 
 // Create overlay element
@@ -269,32 +293,60 @@ function startResizing(e) {
 
 // Resolve URL via background script
 async function resolveUrl(url) {
-  // Check cache first
-  const cached = urlCache.get(url);
+  const startTime = Date.now();
+  
+  // Check cache first (mode-specific)
+  const modeCache = urlCache[currentMode];
+  const cached = modeCache.get(url);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-    return { data: cached.data, mode: cached.mode, cached: true };
+    logOverlay(`Cache hit for ${url} in ${currentMode} mode (age: ${Date.now() - cached.timestamp}ms)`);
+    return { data: cached.data, mode: currentMode, cached: true };
   }
   
+  logOverlay(`Starting resolution for ${url} in ${currentMode} mode`);
+  
   try {
-    const response = await chrome.runtime.sendMessage({
+    // Add timeout for the message
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Request timeout - please try again')), 10000);
+    });
+    
+    logOverlay(`Sending message to background script...`);
+    const messageSentTime = Date.now();
+    
+    const messagePromise = chrome.runtime.sendMessage({
       type: 'RESOLVE_URL',
       url: url,
       mode: currentMode
     });
     
+    const response = await Promise.race([messagePromise, timeoutPromise]);
+    
+    const messageTime = Date.now() - messageSentTime;
+    logOverlay(`Background script responded in ${messageTime}ms`);
+    
+    if (!response) {
+      throw new Error('No response from extension - please reload the page');
+    }
+    
     if (response.error) {
       throw new Error(response.error);
     }
     
-    // Cache the result
-    urlCache.set(url, {
+    const duration = Date.now() - startTime;
+    logOverlay(`Resolution completed in ${duration}ms for ${currentMode} mode`);
+    
+    // Cache the result in mode-specific cache
+    modeCache.set(url, {
       data: response.data,
-      mode: response.mode,
+      mode: currentMode,
       timestamp: Date.now()
     });
     
-    return { data: response.data, mode: response.mode, cached: false };
+    return { data: response.data, mode: currentMode, cached: false };
   } catch (error) {
+    const duration = Date.now() - startTime;
+    logOverlay(`Resolution failed after ${duration}ms:`, error.message);
     throw error;
   }
 }
@@ -326,9 +378,15 @@ async function handleHover(element, x, y) {
   
   try {
     const result = await resolveUrl(url);
-    showData(currentOverlay, url, result.data, result.mode);
+    // Check if overlay still exists (might have been removed while loading)
+    if (currentOverlay && currentOverlay.isConnected) {
+      showData(currentOverlay, url, result.data, result.mode);
+    }
   } catch (error) {
-    showError(currentOverlay, error.message);
+    // Check if overlay still exists
+    if (currentOverlay && currentOverlay.isConnected) {
+      showError(currentOverlay, error.message);
+    }
   }
 }
 
@@ -340,6 +398,8 @@ function setupHoverListeners() {
     // Check for our wrapped URLs
     const wrapper = event.target.closest('.atpi-url-wrapper');
     if (wrapper) {
+      logOverlay('Hover over AT URL:', wrapper.dataset.atUrl);
+      
       // Clear any existing timeout
       if (hoverTimeout) {
         clearTimeout(hoverTimeout);
@@ -424,7 +484,7 @@ function setupHoverListeners() {
             currentOverlay = null;
           }
         }
-      }, 2000);
+      }, 4000);
     }
   });
   
@@ -456,5 +516,29 @@ function setupHoverListeners() {
   });
 }
 
+// Clear cache function
+function clearCache(mode = null) {
+  if (mode) {
+    const cleared = urlCache[mode].size;
+    urlCache[mode].clear();
+    logOverlay(`Cleared ${cleared} entries from ${mode} cache`);
+  } else {
+    const localCleared = urlCache.local.size;
+    const remoteCleared = urlCache.remote.size;
+    urlCache.local.clear();
+    urlCache.remote.clear();
+    logOverlay(`Cleared ${localCleared} entries from local cache and ${remoteCleared} entries from remote cache`);
+  }
+}
+
+// Listen for cache clear messages from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.type === 'CLEAR_CACHE') {
+    clearCache();
+    sendResponse({ success: true });
+  }
+});
+
 // Initialize hover functionality
 setupHoverListeners();
+logOverlay('Overlay system initialized');

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ATPI - AT Protocol URL Resolver",
+  "name": "ATPI - Instant AT Protocol JSON Previewer",
   "version": "1.0.0",
-  "description": "Resolve AT Protocol URLs to JSON data with hover preview",
+  "description": "Hover over at:// URLs to instantly preview atproto JSON data",
   "permissions": [
     "storage",
     "activeTab"

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ATPI Chrome Extension Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        h2 {
+            color: #333;
+        }
+        .test-case {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+        }
+        code {
+            background: #eee;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ATPI Chrome Extension Test Page</h1>
+    
+    <div class="test-section">
+        <h2>Test Case 1: Valid AT URLs (Real Examples)</h2>
+        <p>Hover over these AT URLs to test the extension:</p>
+        
+        <div class="test-case">
+            <strong>User Profile (Handle):</strong><br>
+            <code>at://sri.xyz</code>
+        </div>
+        
+        <div class="test-case">
+            <strong>User Profile (Bluesky):</strong><br>
+            <code>at://sriganesh.bsky.social</code>
+        </div>
+        
+        <div class="test-case">
+            <strong>DID Collection (Lists):</strong><br>
+            <code>at://did:plc:7gm5ejhut7kia2kzglqfew5b/app.bsky.graph.list</code>
+        </div>
+        
+        <div class="test-case">
+            <strong>Specific Post:</strong><br>
+            <code>at://sriganesh.bsky.social/app.bsky.feed.post/3lry27bsx2s2z</code>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Case 2: Invalid AT URLs</h2>
+        <p>These should show error messages when hovered:</p>
+        
+        <div class="test-case">
+            <strong>Invalid handle:</strong><br>
+            <code>at://nonexistent.handle/app.bsky.feed.post/123</code>
+        </div>
+        
+        <div class="test-case">
+            <strong>Invalid DID:</strong><br>
+            <code>at://did:plc:invalidinvalidinvalid/app.bsky.feed.post/123</code>
+        </div>
+        
+        <div class="test-case">
+            <strong>Invalid collection:</strong><br>
+            <code>at://alice.test/invalid.collection/123</code>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Case 3: Mixed Content</h2>
+        <p>AT URLs mixed with regular text:</p>
+        
+        <div class="test-case">
+            Check out this post: <code>at://sriganesh.bsky.social/app.bsky.feed.post/3lry27bsx2s2z</code> and 
+            this profile: <code>at://sri.xyz</code>. You can also view the collection at 
+            <code>at://did:plc:7gm5ejhut7kia2kzglqfew5b/app.bsky.graph.list</code>.
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Case 4: Editable Content</h2>
+        <p>AT URLs in editable areas should NOT be processed:</p>
+        
+        <div class="test-case">
+            <textarea rows="3" cols="50">
+This AT URL should not be clickable: at://alice.test/app.bsky.feed.post/123
+            </textarea>
+        </div>
+        
+        <div class="test-case">
+            <div contenteditable="true" style="border: 1px solid #ccc; padding: 10px;">
+                This editable div contains: at://alice.test
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Extension Status</h2>
+        <p>Open the browser console (F12) to see debug logs from the extension.</p>
+        <p>Click the extension icon to change between Local and Remote modes.</p>
+    </div>
+    
+    <script>
+        console.log('Test page loaded. AT URLs should be processed by the extension.');
+    </script>
+</body>
+</html>

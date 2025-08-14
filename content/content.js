@@ -1,3 +1,17 @@
+// Debug logging with timestamps
+let DEBUG = false; // Will be loaded from storage
+const log = (...args) => {
+  if (DEBUG) {
+    const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
+    console.log(`[${timestamp}] [ATPI Content]`, ...args);
+  }
+};
+
+// Load debug mode setting
+chrome.storage.sync.get(['debugMode'], (result) => {
+  DEBUG = result.debugMode || false;
+});
+
 // AT Protocol URL pattern
 const AT_URL_PATTERN = /at:\/\/([a-zA-Z0-9._:%-]+(?:\/[a-zA-Z0-9._-]+)*(?:\/[a-zA-Z0-9._~:@!$&'()*+,;=-]+)?)/g;
 
@@ -16,6 +30,9 @@ function processTextNode(textNode) {
   // Skip if already wrapped or inside our own link
   if (parent.classList && parent.classList.contains('atpi-url-wrapper')) return;
   if (parent.classList && parent.classList.contains('atpi-url-link')) return;
+  
+  // Skip if inside any <a> tag (don't modify existing links)
+  if (parent.closest('a')) return;
   
   const fragment = document.createDocumentFragment();
   let lastIndex = 0;
@@ -114,6 +131,7 @@ function walkTextNodes(element) {
 
 // Initial processing of the page
 function processPage() {
+  log('Processing page for AT URLs');
   walkTextNodes(document.body);
 }
 
@@ -194,9 +212,19 @@ if (document.readyState === 'loading') {
 // Listen for mode changes from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'MODE_CHANGED') {
+    log('Mode changed to:', request.mode);
     // Notify overlay system of mode change
     window.dispatchEvent(new CustomEvent('atpi-mode-changed', { 
       detail: { mode: request.mode } 
     }));
+  } else if (request.type === 'DEBUG_MODE_CHANGED') {
+    DEBUG = request.debugMode;
+    // Notify overlay system of debug mode change
+    window.dispatchEvent(new CustomEvent('atpi-debug-mode-changed', { 
+      detail: { debugMode: request.debugMode } 
+    }));
   }
 });
+
+// Log when content script loads
+log('Content script loaded');

@@ -73,6 +73,24 @@
       background: #e8e8e8;
     }
     
+    .debug-section {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+    }
+    
+    .debug-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .debug-toggle input[type="checkbox"] {
+      margin-right: 6px;
+    }
+    
     /* Dark mode support */
     @media (prefers-color-scheme: dark) {
       body {
@@ -102,6 +120,14 @@
       .cache-actions button:hover {
         background: #444;
       }
+      
+      .debug-section {
+        border-top-color: #444;
+      }
+      
+      .debug-toggle {
+        color: #aaa;
+      }
     }
   </style>
 </head>
@@ -113,7 +139,7 @@
       <input type="radio" id="local" name="mode" value="local">
       <label for="local">Local Mode</label>
     </div>
-    <div class="mode-description">Direct PDS connection (faster)</div>
+    <div class="mode-description">Direct PDS connection</div>
     
     <div class="mode-option">
       <input type="radio" id="remote" name="mode" value="remote">
@@ -124,6 +150,13 @@
   
   <div class="cache-actions">
     <button id="clear-cache">Clear Cache</button>
+  </div>
+  
+  <div class="debug-section">
+    <label class="debug-toggle">
+      <input type="checkbox" id="debug-mode">
+      <span>Debug Mode</span>
+    </label>
   </div>
   
   <div class="status" id="status">Loading...</div>
