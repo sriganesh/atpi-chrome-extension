@@ -12,7 +12,7 @@ Thumbs.db
 *.swo
 
 # Build files
-*.zip
+
 dist/
 
 # Chrome extension development
